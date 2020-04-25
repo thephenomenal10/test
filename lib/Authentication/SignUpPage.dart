@@ -29,7 +29,6 @@ class SignUpState extends State<SignUp>{
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
 
-
             Padding(
                 padding: EdgeInsets.all(10.0),
                 child: SignInButton(

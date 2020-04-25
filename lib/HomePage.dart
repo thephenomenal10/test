@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_project/SplashPage.dart';
+import 'package:test_project/Authentication/SignUpPage.dart';
 
 class HomePage extends StatefulWidget{
   @override
@@ -40,7 +40,7 @@ class HomePageState extends State<HomePage>{
     auth.signOut().then((res) {
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (Context) => Splash()));
+          MaterialPageRoute(builder: (context) => SignUp()));
     });
   }
 }

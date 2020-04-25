@@ -14,6 +14,7 @@ class EmailSignIn extends StatefulWidget{
 
 class EmailSignInState extends State<EmailSignIn>{
 
+  FirebaseUser user;
   final _formKey = new GlobalKey<FormState>();
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   TextEditingController emailController = TextEditingController();
@@ -97,7 +98,7 @@ class EmailSignInState extends State<EmailSignIn>{
         .signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text)
-        .then((result){
+        .then((user){
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),

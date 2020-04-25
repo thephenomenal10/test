@@ -1,9 +1,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:test_project/HomePage.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:test_project/services/userManagement.dart';
+
+import '../HomePage.dart';
+
 
 class EmailSignUp extends StatefulWidget{
   @override
@@ -17,14 +20,15 @@ class EmailSignUp extends StatefulWidget{
 class EmailSignUpState extends State<EmailSignUp>{
 
   final _formKey = new GlobalKey<FormState>();
+  final format = DateFormat("yyyy-MM-dd");
+
+
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  DatabaseReference dbRef = FirebaseDatabase.instance.reference().child('Users');
 //  DatabaseReference dbRef = FirebaseDatabase.instance.reference().child("Users");
   TextEditingController emailController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController ageController = TextEditingController();
-
+  TextEditingController DOBController = TextEditingController();
 
   @override
   void dispose() {
@@ -34,7 +38,7 @@ class EmailSignUpState extends State<EmailSignUp>{
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
-    ageController.dispose();
+    DOBController.dispose();
   }
 
   @override
@@ -62,7 +66,7 @@ class EmailSignUpState extends State<EmailSignUp>{
                       ),
                       validator: (value){
                         if(value.isEmpty){
-                          return "anter your name";
+                          return "Enter your name";
                         }
                         return null;
                       }
@@ -84,16 +88,24 @@ class EmailSignUpState extends State<EmailSignUp>{
                   ),
                   Padding(
                     padding: EdgeInsets.all(20.0),
-                    child: TextFormField(
-                      controller: ageController,
+                    child: DateTimeField(
+                      format: format,
+                      controller: DOBController,
+                      onShowPicker: ((context, currentValue){
+                        return showDatePicker(
+                            context: context,
+                            initialDate: currentValue ?? DateTime.now(),
+                            firstDate: DateTime(1990),
+                            lastDate: DateTime(2022));
+                      }),
                       decoration: InputDecoration(
-                          labelText: "Enter your age",
+                          labelText: "Enter your DOB",
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10.0)
                           )
                       ),
                       keyboardType: TextInputType.number,
-                      validator: validatePassword
+                      validator: null
                     ),
                   ),
                   Padding(
@@ -131,24 +143,17 @@ class EmailSignUpState extends State<EmailSignUp>{
   }
 
   void _handleEmailSignUp() async{
+
     await firebaseAuth
         .createUserWithEmailAndPassword(
         email: emailController.text,
-        password: passwordController.text)
-        .then((result){
-        dbRef.child(result.user.uid).set({
-          "email": emailController.text,
-          "age": ageController.text,
-          "name": nameController.text
-        });
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-
-
-
-    }).catchError((err) {
+        password: passwordController.text).then((signedInUser) {
+          UserManagement.storeNewUser(signedInUser);
+          print("hello");
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
+              print("Details of the Signed in User Details $signedInUser");
+    })
+        .catchError((err) {
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -186,9 +191,12 @@ class EmailSignUpState extends State<EmailSignUp>{
 
   String validatePassword(String value) {
 // Indian Mobile number are of 10 digit only
-    if (value.length < 6) {
+    Pattern pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+    RegExp regExp = new RegExp(pattern);
 
-      return 'Password must be of atleast 6 digit';
+    if (! regExp.hasMatch(value)) {
+
+      return 'Password must have 1 uppercase, 1 lowercase, 1 numeric and special character';
     }
     else {
 
